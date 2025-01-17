@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ import (
 
 // NewCmdImageImport returns a new cobra command
 func NewCmdImageImport() *cobra.Command {
-
 	loadImageOpts := k3d.ImageImportOpts{}
 
 	// create new command
@@ -98,7 +97,7 @@ So if a file './k3d-io/k3d-tools' exists, k3d will try to import it instead of t
 
 	cmd.Flags().BoolVarP(&loadImageOpts.KeepTar, "keep-tarball", "k", false, "Do not delete the tarball containing the saved images from the shared volume")
 	cmd.Flags().BoolVarP(&loadImageOpts.KeepToolsNode, "keep-tools", "t", false, "Do not delete the tools node after import")
-	cmd.Flags().StringP("mode", "m", string(k3d.ImportModeToolsNode), "Which method to use to import images into the cluster [auto, direct, tools]. See https://k3d.io/usage/guides/importing_images/")
+	cmd.Flags().StringP("mode", "m", string(k3d.ImportModeToolsNode), "Which method to use to import images into the cluster [auto, direct, tools]. See https://k3d.io/stable/usage/importing_images/")
 	/* Subcommands */
 
 	// done
@@ -107,7 +106,6 @@ So if a file './k3d-io/k3d-tools' exists, k3d will try to import it instead of t
 
 // parseLoadImageCmd parses the command input into variables required to create a cluster
 func parseLoadImageCmd(cmd *cobra.Command, args []string) ([]string, []*k3d.Cluster) {
-
 	// --cluster
 	clusterNames, err := cmd.Flags().GetStringArray("cluster")
 	if err != nil {

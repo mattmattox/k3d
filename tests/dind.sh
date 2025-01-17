@@ -15,6 +15,9 @@ RUNNER_START_TIMEOUT=${E2E_RUNNER_START_TIMEOUT:-10}
 # Override Docker-in-Docker version
 E2E_DIND_VERSION=${E2E_DIND_VERSION:-}
 
+# Fail on first error instead of waiting until all tests are done. Useful in CI.
+E2E_FAIL_FAST=${E2E_FAIL_FAST:-}
+
 ####################################################################################
 
 CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -50,6 +53,7 @@ k3de2e=$(docker run -d \
           -e EXE="$K3D_EXE" \
           -e CI="true" \
           -e LOG_LEVEL="$LOG_LEVEL" \
+          -e E2E_FAIL_FAST="$E2E_FAIL_FAST" \
           -e E2E_INCLUDE="$E2E_INCLUDE" \
           -e E2E_EXCLUDE="$E2E_EXCLUDE" \
           -e E2E_PARALLEL="$E2E_PARALLEL" \
@@ -83,7 +87,7 @@ done
 # build helper container images
 if [ -z "$E2E_HELPER_IMAGE_TAG" ]; then
   docker exec "$k3de2e" git config --global --add safe.directory /src
-  docker exec --workdir /src "$k3de2e" make -j2 build-helper-images
+  docker exec --workdir /src "$k3de2e" make -j2 build-helper-images || failed "build-helper-images failed"
   # execute tests
   echo "Start time outside runner: $(date)"
   docker exec "$k3de2e" /src/tests/runner.sh

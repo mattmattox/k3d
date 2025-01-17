@@ -23,7 +23,7 @@ This file can also be used for providing additional information necessary for ac
 If you're using a `SimpleConfig` file to configure your k3d cluster, you may as well embed the registries.yaml in there directly:
 
 ```yaml
-apiVersion: k3d.io/v1alpha4
+apiVersion: k3d.io/v1alpha5
 kind: Simple
 metadata:
   name: test
@@ -226,7 +226,7 @@ Then you should check that the pod is running with `kubectl get pods -l "app=ngi
       -v ~/.local/share/docker-io-registry:/var/lib/registry `# also persist the downloaded images on the device outside the container`
     ```
 
-2. Create `registry.yaml`
+2. Create `registry.yml`
 
     ```yaml
     mirrors:
@@ -252,7 +252,7 @@ Then you should check that the pod is running with `kubectl get pods -l "app=ngi
 1. Create a config file, e.g. `/home/me/test-regcache.yaml`
 
     ```yaml
-    apiVersion: k3d.io/v1alpha4
+    apiVersion: k3d.io/v1alpha5
     kind: Simple
     metadata:
       name: test-regcache

@@ -44,6 +44,7 @@ k3d makes it very easy to create single- and multi-node [k3s](https://github.com
 | [**GitHub Releases**](https://github.com/k3d-io/k3d/releases) | latest | [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/k3d-io/k3d?include_prereleases&label=%20&style=for-the-badge&logo=github)](https://github.com/k3d-io/k3d/releases) | [![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/k3d-io/k3d?label=%20&style=for-the-badge)](https://github.com/k3d-io/k3d/releases) | ![GitHub Release Downloads (incl. Pre-Releases)](https://img.shields.io/github/downloads-pre/k3d-io/k3d/latest/total?label=%20&style=for-the-badge) |
 | [**Homebrew**](https://formulae.brew.sh/formula/k3d) | stable | [![homebrew](https://img.shields.io/homebrew/v/k3d?label=%20&style=for-the-badge)](https://formulae.brew.sh/formula/k3d) | - | - |
 | [**Chocolatey**](https://chocolatey.org/packages/k3d/)| stable | [![chocolatey](https://img.shields.io/chocolatey/v/k3d?label=%20&style=for-the-badge)](https://chocolatey.org/packages/k3d/) | - | - |
+| [**Scoop**](https://github.com/ScoopInstaller/Main/blob/master/bucket/k3d.json/)| stable | [![scoop](https://img.shields.io/scoop/v/k3d?label=%20&style=for-the-badge)](https://github.com/ScoopInstaller/Main/blob/master/bucket/k3d.json/) | - | - |
 
 ## Installation
 
@@ -107,6 +108,10 @@ Use the install script to grab a specific release (via `TAG` environment variabl
 
       *Note*: package source can be found in [erwinkersten/chocolatey-packages](https://github.com/erwinkersten/chocolatey-packages/tree/master/automatic/k3d)
 
+    - [:material-microsoft-windows: Scoop (Windows)](https://scoop.sh//): `scoop install k3d`
+
+      *Note*: package source can be found in [ScoopInstaller/Main](https://github.com/ScoopInstaller/Main/blob/master/bucket/k3d.json)
+
     - [arkade](https://github.com/alexellis/arkade): `arkade get k3d`
 
     - [asdf](https://asdf-vm.com): `asdf plugin-add k3d && asdf install k3d latest`
@@ -114,7 +119,7 @@ Use the install script to grab a specific release (via `TAG` environment variabl
       *Note*: `asdf plugin-add k3d`, then `asdf install k3d <tag>` with `<tag> = latest` or `5.x.x` for a specific version (maintained by [spencergilbert/asdf-k3d](https://github.com/spencergilbert/asdf-k3d))
 
     - Others
-      - install via go: `#!bash go install github.com/k3d-io/k3d@latest` (**Note**: this will give you unreleased/bleeding-edge changes)
+      - install via go: `#!bash go install github.com/k3d-io/k3d/v5@latest` (**Note**: this will give you unreleased/bleeding-edge changes)
 
 ## Quick Start
 

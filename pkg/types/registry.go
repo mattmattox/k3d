@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,9 @@ const (
 )
 
 type RegistryOptions struct {
-	ConfigFile string        `json:"configFile,omitempty"`
-	Proxy      RegistryProxy `json:"proxy,omitempty"`
+	ConfigFile    string        `json:"configFile,omitempty"`
+	Proxy         RegistryProxy `json:"proxy,omitempty"`
+	DeleteEnabled bool          `json:"deleteEnabled,omitempty"`
 }
 
 type RegistryProxy struct {

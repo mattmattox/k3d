@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -129,7 +129,6 @@ func (act RewriteFileAction) Run(ctx context.Context, node *k3d.Node) error {
 	}
 
 	return nil
-
 }
 
 // ExecAction executes some command inside the node
@@ -168,7 +167,6 @@ func (act ExecAction) Run(ctx context.Context, node *k3d.Node) error {
 			}
 			return fmt.Errorf("error executing hook %s in node %s: %w", act.Name(), node.Name, err)
 		}
-
 	}
 	return nil
 }

@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ import (
 	"context"
 	"testing"
 
-	conf "github.com/k3d-io/k3d/v5/pkg/config/v1alpha4"
+	conf "github.com/k3d-io/k3d/v5/pkg/config/v1alpha5"
 	"github.com/k3d-io/k3d/v5/pkg/runtimes"
 	"github.com/spf13/viper"
 )
@@ -45,11 +45,10 @@ func TestTransformSimpleConfigToClusterConfig(t *testing.T) {
 
 	t.Logf("\n========== Read Config ==========\n%+v\n=================================\n", cfg)
 
-	clusterCfg, err := TransformSimpleToClusterConfig(context.Background(), runtimes.Docker, cfg.(conf.SimpleConfig))
+	clusterCfg, err := TransformSimpleToClusterConfig(context.Background(), runtimes.Docker, cfg.(conf.SimpleConfig), cfgFile)
 	if err != nil {
 		t.Error(err)
 	}
 
 	t.Logf("\n===== Resulting Cluster Config =====\n%+v\n===============\n", clusterCfg)
-
 }

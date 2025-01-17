@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ func TestRegistryGenerateLocalRegistryHostingConfigMapYAML(t *testing.T) {
 	expectedYAMLString := `apiVersion: v1
 data:
   localRegistryHosting.v1: |
-    help: https://k3d.io/usage/guides/registries/#using-a-local-registry
+    help: https://k3d.io/stable/usage/registries/#using-a-local-registry
     host: test-host:5432
     hostFromClusterNetwork: test-host:1234
     hostFromContainerRuntime: test-host:1234
@@ -64,5 +64,4 @@ metadata:
 	if !(strings.TrimSpace(string(cm)) == strings.TrimSpace(expectedYAMLString)) {
 		t.Errorf("Computed configmap\n-> Actual:\n%s\n  does not match expected YAML\n-> Expected:\n%s", strings.TrimSpace(string(cm)), strings.TrimSpace(expectedYAMLString))
 	}
-
 }

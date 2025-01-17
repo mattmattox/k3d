@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import (
 )
 
 // JSONSchema describes the schema used to validate config files
+//
 //go:embed schema.json
 var JSONSchema string
 
@@ -181,7 +182,6 @@ func (c ClusterListConfig) GetAPIVersion() string {
 }
 
 func GetConfigByKind(kind string) (configtypes.Config, error) {
-
 	// determine config kind
 	switch kind {
 	case "simple":
@@ -195,5 +195,4 @@ func GetConfigByKind(kind string) (configtypes.Config, error) {
 	default:
 		return nil, fmt.Errorf("unknown `kind` '%s' in config file", kind)
 	}
-
 }

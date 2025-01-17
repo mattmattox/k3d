@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,6 @@ type getKubeconfigFlags struct {
 
 // NewCmdKubeconfigGet returns a new cobra command
 func NewCmdKubeconfigGet() *cobra.Command {
-
 	writeKubeConfigOptions := client.WriteKubeConfigOptions{
 		UpdateExisting:       true,
 		UpdateCurrentContext: true,

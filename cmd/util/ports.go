@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,6 @@ var apiPortRegexp = regexp.MustCompile(`^(?P<hostref>(?P<hostip>\d{1,3}\.\d{1,3}
 
 // ParsePortExposureSpec parses/validates a string to create an exposePort struct from it
 func ParsePortExposureSpec(exposedPortSpec, internalPort string) (*k3d.ExposureOpts, error) {
-
 	match := apiPortRegexp.FindStringSubmatch(exposedPortSpec)
 
 	if len(match) == 0 {
@@ -108,7 +107,6 @@ func ParsePortExposureSpec(exposedPortSpec, internalPort string) (*k3d.ExposureO
 	api.Binding = portMapping[0].Binding
 
 	return api, nil
-
 }
 
 // ValidatePortMap validates a port mapping
