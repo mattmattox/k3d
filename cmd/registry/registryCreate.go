@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,7 @@ type regCreateFlags struct {
 	ProxyUsername  string
 	ProxyPassword  string
 	NoHelp         bool
+	DeleteEnabled  bool
 }
 
 var helptext string = `# You can now use the registry like this (example):
@@ -66,7 +67,6 @@ kubectl run mynginx --image %s/mynginx:v0.1
 
 // NewCmdRegistryCreate returns a new cobra command
 func NewCmdRegistryCreate() *cobra.Command {
-
 	flags := &regCreateFlags{}
 	ppFlags := &regCreatePreProcessedFlags{}
 
@@ -115,6 +115,7 @@ func NewCmdRegistryCreate() *cobra.Command {
 	cmd.Flags().StringVar(&flags.ProxyPassword, "proxy-password", "", "Specify the password of the proxied remote registry")
 
 	cmd.Flags().BoolVar(&flags.NoHelp, "no-help", false, "Disable the help text (How-To use the registry)")
+	cmd.Flags().BoolVar(&flags.DeleteEnabled, "delete-enabled", false, "Enable image deletion")
 
 	// done
 	return cmd
@@ -122,7 +123,6 @@ func NewCmdRegistryCreate() *cobra.Command {
 
 // parseCreateRegistryCmd parses the command input into variables required to create a registry
 func parseCreateRegistryCmd(cmd *cobra.Command, args []string, flags *regCreateFlags, ppFlags *regCreatePreProcessedFlags) (*k3d.Registry, []*k3d.Cluster) {
-
 	// --cluster
 	clusters := []*k3d.Cluster{}
 	for _, name := range ppFlags.Clusters {
@@ -134,7 +134,7 @@ func parseCreateRegistryCmd(cmd *cobra.Command, args []string, flags *regCreateF
 	}
 
 	// --port
-	exposePort, err := cliutil.ParsePortExposureSpec(ppFlags.Port, k3d.DefaultRegistryPort)
+	exposePort, err := cliutil.ParseRegistryPortExposureSpec(ppFlags.Port)
 	if err != nil {
 		l.Log().Errorln("Failed to parse registry port")
 		l.Log().Fatalln(err)
@@ -171,8 +171,9 @@ func parseCreateRegistryCmd(cmd *cobra.Command, args []string, flags *regCreateF
 			}
 			volumes = append(volumes, volume)
 		}
-
 	}
+
+	options.DeleteEnabled = flags.DeleteEnabled
 
 	return &k3d.Registry{Host: registryName, Image: flags.Image, ExposureOpts: *exposePort, Network: flags.Network, Options: options, Volumes: volumes}, clusters
 }

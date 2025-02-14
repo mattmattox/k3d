@@ -1,25 +1,51 @@
 name: Test & Release
 
 on:
-  - push
-  - workflow_dispatch
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'docgen/**'
+      - 'test/**'
+      - 'examples/**'
+      - 'hack/**'
+      - 'scripts/**'
+      - 'tools/**'
+      - 'vendor/**'
+      - 'LICENSE'
+      - 'README.md'
+      - '.github/**'
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - 'docgen/**'
+      - 'test/**'
+      - 'examples/**'
+      - 'hack/**'
+      - 'scripts/**'
+      - 'tools/**'
+      - 'vendor/**'
+      - 'LICENSE'
+      - 'README.md'
+      - '.github/**'
+  workflow_dispatch:
 
 env:
   IMAGE_REGISTRY: ghcr.io
   IMAGE_BASE_REPO: k3d-io
   IMAGE_PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
-  GO_VERSION: "1.17.x"
-  DOCKER_VERSION: "20.10"
+  GO_VERSION: "1.22.x"
+  DOCKER_VERSION: "27.0"
     
 jobs:
   test-suite:
+    timeout-minutes: 30
     name: Full Test Suite
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       # Setup
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup Go environment
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
           go-version: "${{ env.GO_VERSION }}"
       - name: Setup Docker
@@ -30,13 +56,21 @@ jobs:
         run: make ci-setup
       # Code Check
       - name: Run Static Analysis
-        run: make lint
+        run: make ci-lint
       # Tests
       - name: Run Go Tests
         run: make test
       - name: Run E2E Tests
-        timeout-minutes: 20
-        run: make e2e
+        timeout-minutes: 30
+        # Quite often, tests were failing due to "too many open files" errors, so we're fixing this here
+        # Also, we want to see trace level logs if tests fail and the pipeline should exit on first error
+        run: |
+          echo "[$(date '+%F %H:%M:%S')] Setting up environment for E2E tests..."
+          sudo prlimit --pid $$ --nofile=1048576:1048576
+          sudo sysctl fs.inotify.max_user_instances=1280
+          sudo sysctl fs.inotify.max_user_watches=655360
+          echo "[$(date '+%F %H:%M:%S')] Running E2E tests..."
+          make e2e -e E2E_LOG_LEVEL=trace -e E2E_FAIL_FAST=true
       # Builds
       - name: Test Platform Builds
         run: make build-cross
@@ -46,31 +80,31 @@ jobs:
   release-images:
     name: Build & Release Images
     # Only run on tags
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       # Setup
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       # Container Image Setup
       - name: Setup Docker
         uses: docker-practice/actions-setup-docker@master
         with:
           docker_version: "${{ env.DOCKER_VERSION }}"
       - name: Log in to the Container registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
       # Gather Docker Metadata
       - name: Docker Metadata k3d-binary
         id: meta-k3d-binary
         env:
           IMAGE_ID: k3d
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_BASE_REPO }}/${{ env.IMAGE_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -87,7 +121,7 @@ jobs:
         env:
           IMAGE_ID: k3d
           IMAGE_SUFFIX: "-dind"
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_BASE_REPO }}/${{ env.IMAGE_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -105,7 +139,7 @@ jobs:
         id: meta-k3d-proxy
         env:
           IMAGE_ID: k3d-proxy
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_BASE_REPO }}/${{ env.IMAGE_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -121,7 +155,7 @@ jobs:
         id: meta-k3d-tools
         env:
           IMAGE_ID: k3d-tools
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_BASE_REPO }}/${{ env.IMAGE_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -133,37 +167,22 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha
-      - name: Merge Metadata Bake Definitions
-        run: |
-          INPUT=(${{ steps.meta-k3d-binary.outputs.bake-file }} ${{ steps.meta-k3d-dind.outputs.bake-file }} ${{ steps.meta-k3d-proxy.outputs.bake-file }} ${{ steps.meta-k3d-tools.outputs.bake-file }})
-          OUT_FILE=./bake-metadata.json
-          OUT_FILE_TMP=./bake-metadata-tmp.json
-
-          cat << EOF > $OUT_FILE
-          {
-            "target": {}
-          }
-          EOF
-
-          for file in "${INPUT[@]}"; do
-            cat $OUT_FILE > $OUT_FILE_TMP
-            jq -s '.[0] * .[1]' $OUT_FILE_TMP $file > $OUT_FILE
-          done
-
-          rm "$OUT_FILE_TMP"
       # Build and Push container images
       - name: Build Images
-        uses: docker/bake-action@v1.7.0
+        uses: docker/bake-action@v6
         with:
           files: |
             ./docker-bake.hcl
-            ./bake-metadata.json
+            cwd://${{ steps.meta-k3d-binary.outputs.bake-file }}
+            cwd://${{ steps.meta-k3d-dind.outputs.bake-file }}
+            cwd://${{ steps.meta-k3d-proxy.outputs.bake-file }}
+            cwd://${{ steps.meta-k3d-tools.outputs.bake-file }}
           targets: release
           push: false
       # Wait for tests to pass and push images (ONLY ON TAG)
       - name: Wait for tests to succeed
         if: startsWith(github.ref, 'refs/tags/')
-        uses: lewagon/wait-on-check-action@v1.1.1
+        uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.ref }}
           check-name: "Full Test Suite"
@@ -171,34 +190,37 @@ jobs:
           wait-interval: 20
       - name: Push Images
         if: startsWith(github.ref, 'refs/tags/')
-        uses: docker/bake-action@v1.7.0
+        uses: docker/bake-action@v6
         with:
           files: |
             ./docker-bake.hcl
-            ./bake-metadata.json
+            cwd://${{ steps.meta-k3d-binary.outputs.bake-file }}
+            cwd://${{ steps.meta-k3d-dind.outputs.bake-file }}
+            cwd://${{ steps.meta-k3d-proxy.outputs.bake-file }}
+            cwd://${{ steps.meta-k3d-tools.outputs.bake-file }}
           targets: release
           push: true
 
   release-github:
     name: Build & Release Binaries
     # Only run on tags
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       # Setup
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup Go environment
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
           go-version: "${{ env.GO_VERSION }}"
       - name: Setup CI Tools
         run: make ci-setup
       # Go Build
       - name: Build k3d Binary
-        run: make build-cross
+        run: make gen-checksum build-cross
       # Wait for tests to pass and create release (ONLY ON TAG)
       - name: Wait for tests to succeed
         if: startsWith(github.ref, 'refs/tags/')
-        uses: lewagon/wait-on-check-action@v1.1.1
+        uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.ref }}
           check-name: "Full Test Suite"
@@ -208,7 +230,7 @@ jobs:
       - name: Extract Tag from Ref
         if: startsWith(github.ref, 'refs/tags/')
         id: tag
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo VERSION=${GITHUB_REF/refs\/tags\//} >> $GITHUB_OUTPUT
         shell: bash
       - uses: apexskier/github-semver-parse@v1
         if: startsWith(github.ref, 'refs/tags/')

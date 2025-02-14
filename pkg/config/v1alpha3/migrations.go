@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -140,11 +140,9 @@ func MigrateV1Alpha2(input configtypes.Config) (configtypes.Config, error) {
 		l.Log().Debugf("Migrated config: %+v", cfg)
 
 		return cfg, nil
-
 	}
 
 	l.Log().Debugf("No migration needed for %s#%s -> %s#%s", input.GetAPIVersion(), input.GetKind(), ApiVersion, input.GetKind())
 
 	return input, nil
-
 }

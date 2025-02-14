@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -74,7 +74,7 @@ const DefaultK3dInternalHostRecord = "host.k3d.internal"
 const DefaultImageVolumeMountPath = "/k3d/images"
 
 // DefaultConfigDirName defines the name of the config directory (where we'll e.g. put the kubeconfigs)
-const DefaultConfigDirName = ".k3d" // should end up in $HOME/
+const DefaultConfigDirName = ".config/k3d" // should end up in $XDG_CONFIG_HOME
 
 // DefaultKubeconfigPrefix defines the default prefix for kubeconfig files
 const DefaultKubeconfigPrefix = DefaultObjectNamePrefix + "-kubeconfig"

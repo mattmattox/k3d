@@ -1,12 +1,13 @@
-ARG DOCKER_VERSION=20.10
+ARG DOCKER_VERSION=27.3.1
 ############################################################
 # builder                                                  #
 # -> golang image used solely for building the k3d binary  #
 # -> built executable can then be copied into other stages #
 ############################################################
-FROM golang:1.18 as builder
+FROM golang:1.22.4 as builder
 ARG GIT_TAG_OVERRIDE
 WORKDIR /app
+RUN mkdir /tmp/empty
 COPY . .
 RUN make build -e GIT_TAG_OVERRIDE=${GIT_TAG_OVERRIDE} && bin/k3d version
 
@@ -27,7 +28,7 @@ COPY scripts/install-tools.sh /scripts/install-tools.sh
 
 # install some basic packages needed for testing, etc.
 RUN apk update && \
-    apk add bash curl sudo jq git make netcat-openbsd
+    apk add bash curl sudo jq git make netcat-openbsd iptables
 
 # install kubectl to interact with the k3d cluster
 # install yq (yaml processor) from source, as the busybox yq had some issues
@@ -40,5 +41,7 @@ COPY --from=builder /app/bin/k3d /bin/k3d
 # -> only the k3d binary.. nothing else #
 #########################################
 FROM scratch as binary-only
+# empty tmp directory to avoid errors when transforming the config file
+COPY --from=builder /tmp/empty /tmp
 COPY --from=builder /app/bin/k3d /bin/k3d
 ENTRYPOINT ["/bin/k3d"]

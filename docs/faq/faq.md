@@ -22,6 +22,8 @@
   - Related issues: [#133 - Pods evicted due to `NodeHasDiskPressure`](https://github.com/k3d-io/k3d/issues/133) (collection of #119 and #130)
   - Background: somehow docker runs out of space for the k3d node containers, which triggers a hard eviction in the kubelet
   - Possible [fix/workaround by @zer0def](https://github.com/k3d-io/k3d/issues/133#issuecomment-549065666):
+    - cleanup your host file system: Yes, your host file system may actually be quite packed, triggering the eviction threshold.
+      - on large disks, you may still have quite a few GB leftover, which is more than enough. In that case, lower the threshold as per below.
     - use a docker storage driver which cleans up properly (e.g. overlay2)
     - clean up or expand docker root filesystem
     - change the kubelet's eviction thresholds upon cluster creation:
@@ -31,14 +33,6 @@
         --k3s-arg '--kubelet-arg=eviction-hard=imagefs.available<1%,nodefs.available<1%@agent:*' \
         --k3s-arg '--kubelet-arg=eviction-minimum-reclaim=imagefs.available=1%,nodefs.available=1%@agent:*'
       ```
-
-## Restarting a multi-server cluster or the initializing server node fails
-
-- What you do: You create a cluster with more than one server node and later, you either stop `server-0` or stop/start the whole cluster
-- What fails: After the restart, you cannot connect to the cluster anymore and `kubectl` will give you a lot of errors
-- What causes this issue: it's a [known issue with dqlite in `k3s`](https://github.com/rancher/k3s/issues/1391) which doesn't allow the initializing server node to go down
-- What's the solution: Hopefully, this will be solved by the planned [replacement of dqlite with embedded etcd in k3s](https://github.com/rancher/k3s/pull/1770)
-- Related issues: [#262](https://github.com/k3d-io/k3d/issues/262)
 
 ## Passing additional arguments/flags to k3s (and on to e.g. the kube-apiserver)
 

@@ -1,5 +1,199 @@
 # Changelog
 
+## v5.7.0 - 04.07.2024
+
+### Added
+
+- feat: support config embedded and external files (#1417)
+- docs: add examples for config embedded and external files (#1432)
+- feat: compatibility with docker userns-remap (#1442) 
+- docs: mention ipam when creating multiserver cluster (#1451) 
+
+### Changed
+
+- docs: Update CUDA docs to use k3s suggested method (#1430)
+- chore: upgrade go + dependencies + address all golangci-lint issues + fix deprecations (#1459)
+- chore: upgrade docker dependency and adjust for deprecations (#1460) 
+
+### Fixed
+
+- fix: close output file (#1436)
+- fix: Script exits fatally when resolv.conf is missing Docker nameserver (#1441)
+- test: fix translate.go test following userns merge (#1444) 
+- fix: respect ~/.kube/config as a symlink (#1455)
+- fix: preserve coredns config during cluster restart (#1453)
+  - **IMPORTANT** This makes use of the `coredns-custom` configmap, so please consider this in case you're using this configmap yourself!
+- fix: make drain ignore DaemonSets & bypass PodDisruptionBudgets (#1414) 
+
+## v5.6.3 - 10.04.2024
+
+### Changed
+
+- Dependency updates and related fixes
+
+## v5.6.2 - 09.04.2024
+
+### Added
+
+-  [DOCS] Add scoop install option (#1390)
+- feat: support writing kubeconfig to a stream (#1381)
+
+### Changed
+
+- Not using stdout directly for logging (#1339)
+- change: enable fixes by default and consolidate lookup logic (#1349)
+- Consistent logging during cluster creation flow (#1398)
+- 
+
+### Fixed
+
+- change: fix docs link (#1343)
+- 
+
+## v5.6.0 - 21.08.2023
+
+### Added
+
+- add: iptables in DinD image (#1298)
+- docs(podman): add usage for rootless mode on macOS (#1314)
+
+### Changed
+
+- **Potentially Breaking**: For people using k3d as a module: switch from netaddr.af to netipx + netip (changed some code around `host.k3d.internal` and the docker runtime)
+- **Potentially Breaking**: K3d config directory may change for you: Adhere to XDG's configuration specification (#1320)
+
+### Fixed
+
+- docs: fix go install command (#1337)
+- fix docs links in CONTRIBUTING.md
+- chore: pkg imported more than once (#1313)
+
+## v5.5.2 - 03.08.2023
+
+### Fixed
+
+- docs: fix list failing to render (#1300)
+- bump dependencies to fix `Invalid Host Header` issue with [Docker/Moby#45935](https://github.com/moby/moby/issues/45935)
+
+### Changed
+
+- change: proxy - update nginx-alpine base image (#1309)
+- change: add empty /tmp to binary-only image to make it work with config files
+
+### Added
+
+- add: workflow to label issues/prs by sponsors
+
+## v5.5.1 - 19.05.2023
+
+### Fixed
+
+- fix/regression: custom registry config not parsed correctly (#1292)
+
+## v5.5.0 - 17.05.2023
+
+### Added
+
+- Add support for ulimits (#1264)
+  - new flag: `k3d cluster create --runtime-ulimit NAME[=SOFT]:[HARD]` (same for `k3d node create`)
+- add: K3D_FIX_MOUNTS fix to make / rshared (e.g. to make Cilium work) (#1268)
+  - new environment variable: `K3D_FIX_MOUNTS=1`
+- add(docs): podman instructions for macOS (#1257)
+- Adds json response of version info (#1262)
+  - new flag: `k3d version -o json`
+
+### Changed
+
+- change: allow full K3s registry configuration (#1215)
+- change: update deps (manual + dependabot)
+- change: set e2e test ghaction timeout
+- change: improved help text for k3d version ls
+- change: deprecate 'k3d version ls --format' in favor of '--output'
+- change: golangci-lint fix whitespaces
+- change: udpate docs
+
+### Fixed
+
+- Fix panic when k3sURLEnvIndex is -1 (#1252)
+- Fix spelling mistake in configfile.md (#1261)
+- Correct typo: Inconsistent filename in registry documentation. (#1275)
+- fix: k3d version ls (now via crane) (#1286)
+- fix: registries.yaml file not marshalled correctly by k8s yaml package
+
+### Deprecated
+
+- change: deprecate 'k3d version ls --format' in favor of '--output'
+
+## v5.4.9 - 16.03.2023 [BROKEN BUILD]
+
+### Changed
+
+- Updated docker dependency to v23.0.1
+- change: replace deprecated set-output command with environment file in Github Actions (#1226)
+
+### Fixed
+
+- fix: go install was failing due to outdated docker dependency
+- fix: handle colima host for host.k3d.internal lookup (#1228)
+
+## v5.4.8 - 04.03.2023
+
+### Changed
+
+- Go 1.20 and updated dependencies
+- change: Use loadbalancer or any *active* server as K3S_URL (#1190)
+- change: graceful shutdown drains node before k3d container stops (#1119)
+- change: update docs to use quotes around extra args (#1218)
+- changed: update podman service documentation around network dns (#1210)
+- change: no whitespace in goflags in makefile
+- change: fix build with go 1.20 (#1216)
+
+### Fixed
+
+- fix: generate checksum for k3d binaries (#1209)
+- fix: improved error handling when update.k3s.io returns a 5XX or invalid response (#1170)
+- fix: install script on windows (#1168)
+- fix: fix for link in doc (#1219)
+
+## v5.4.7 - 02.02.2023
+
+### Changed
+
+- updated direct and transitive dependencies
+
+### Fixed
+
+- fix: avoid appending existing volumes (#1154)
+- fix: indentation for CoreDNS doc (#1166)
+- fix: logs error shadowing exec error (#1172)
+- docs: Add missing backtick to k3s-arg example command (#1192)
+- Support reading in registries-config via env (#1199)
+
+## v5.4.6 - 29.08.2022
+
+### Added
+
+- add: ability to load configuration from stdin (#1126)
+
+### Changed
+
+- update dependencies
+- introduce Go workspace mode
+- updated docker/k3s version test-matrix
+- Go 1.19
+- More info on "node stopped returning log lines" error
+
+### Fixed
+
+- tests/e2e: failing e2e tests for parsing config file from stdin
+- ci: "random" failing GitHub Actions due to "too many open files"
+- docs: fix code highlighting
+- docs: beautify bash commands (#1103)
+
+## v5.4.5 - Broken/Unreleased
+
+- This tag was reverted because of constant failures in GitHub Actions and the E2E Tests
+
 ## v5.4.4 - 11.07.2022
 
 ### Added

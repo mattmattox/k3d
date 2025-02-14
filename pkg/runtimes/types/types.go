@@ -1,5 +1,5 @@
 /*
-Copyright © 2020-2022 The k3d Author(s)
+Copyright © 2020-2023 The k3d Author(s)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ type RuntimeInfo struct {
 	CgroupVersion string `json:"cgroupversion,omitempty"`
 	CgroupDriver  string `json:"cgroupdriver,omitempty"`
 	Filesystem    string `json:"filesystem,omitempty"`
+	InfoName      string `json:"infoname,omitempty"`
 }
 
 type NodeLogsOpts struct {

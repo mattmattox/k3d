@@ -30,7 +30,7 @@ endif
 K3D_IMAGE_TAG := $(GIT_TAG:v%=%)
 
 # get latest k3s version: grep the tag and replace + with - (difference between git and dockerhub tags)
-K3S_TAG		:= $(shell curl --silent --retry 3 "https://update.k3s.io/v1-release/channels/stable" | egrep -o '/v[^ ]+"' | sed -E 's/\/|\"//g' | sed -E 's/\+/\-/')
+K3S_TAG := $(shell curl --silent --retry 3 "https://update.k3s.io/v1-release/channels/stable" | egrep -o '/v[^ ]+"' | sed -E 's/\/|\"//g' | sed -E 's/\+/\-/')
 
 ifeq ($(K3S_TAG),)
 $(warning K3S_TAG undefined: couldn't get latest k3s image tag!)
@@ -55,6 +55,7 @@ E2E_KEEP ?=
 E2E_PARALLEL ?=
 E2E_DIND_VERSION ?=
 E2E_K3S_VERSION ?=
+E2E_FAIL_FAST ?=
 
 ########## Go Build Options ##########
 # Build targets
@@ -65,13 +66,12 @@ K3D_HELPER_VERSION ?=
 # Go options
 GO        ?= go
 GOENVPATH := $(shell go env GOPATH)
-PKG       := $(shell go mod vendor)
 TAGS      :=
 TESTS     := ./...
 TESTFLAGS :=
 LDFLAGS   := -w -s -X github.com/k3d-io/k3d/v5/version.Version=${GIT_TAG} -X github.com/k3d-io/k3d/v5/version.K3sVersion=${K3S_TAG}
-GCFLAGS   := 
-GOFLAGS   := -mod vendor
+GCFLAGS   :=
+GOFLAGS   := -mod=vendor
 BINDIR    := $(CURDIR)/bin
 BINARIES  := k3d
 
@@ -87,8 +87,8 @@ GO_SRC += $(foreach dir,$(REC_DIRS),$(shell find $(dir) -name "*.go"))
 
 ########## Required Tools ##########
 # Go Package required
-PKG_GOX := github.com/mitchellh/gox@v1.0.1
-PKG_GOLANGCI_LINT_VERSION := 1.46.1
+PKG_GOX := github.com/iwilltry42/gox@v0.1.0
+PKG_GOLANGCI_LINT_VERSION := 1.57.2
 PKG_GOLANGCI_LINT_SCRIPT := https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
 PKG_GOLANGCI_LINT := github.com/golangci/golangci-lint/cmd/golangci-lint@v${PKG_GOLANGCI_LINT_VERSION}
 
@@ -125,6 +125,9 @@ build:
 build-cross: LDFLAGS += -extldflags "-static"
 build-cross:
 	CGO_ENABLED=0 gox -parallel=3 -output="_dist/$(BINARIES)-{{.OS}}-{{.Arch}}" -osarch='$(TARGETS)' $(GOFLAGS) $(if $(TAGS),-tags '$(TAGS)',) -ldflags '$(LDFLAGS)'
+gen-checksum:	build-cross
+	$(eval ARTIFACTS_TO_PUBLISH := $(shell ls _dist/*))
+	$$(sha256sum $(ARTIFACTS_TO_PUBLISH) > _dist/checksums.txt)
 
 # build a specific docker target ( '%' matches the target as specified in the Dockerfile)
 build-docker-%:
@@ -168,6 +171,9 @@ check-fmt:
 lint:
 	@golangci-lint run -D $(GOLANGCI_LINT_DISABLED_LINTERS) $(LINT_DIRS)
 
+ci-lint:
+	golangci-lint run --timeout 5m0s --out-format=github-actions -D $(GOLANGCI_LINT_DISABLED_LINTERS) $(LINT_DIRS)
+
 check: check-fmt lint
 
 ###########################
@@ -179,7 +185,7 @@ test:
 
 e2e:
 	@echo "Running e2e tests"
-	LOG_LEVEL="$(E2E_LOG_LEVEL)" E2E_INCLUDE="$(E2E_INCLUDE)" E2E_EXCLUDE="$(E2E_EXCLUDE)" E2E_EXTRA="$(E2E_EXTRA)" E2E_RUNNER_START_TIMEOUT=$(E2E_RUNNER_START_TIMEOUT) E2E_HELPER_IMAGE_TAG="$(E2E_HELPER_IMAGE_TAG)" E2E_KEEP="$(E2E_KEEP)" E2E_PARALLEL="$(E2E_PARALLEL)" E2E_DIND_VERSION="$(E2E_DIND_VERSION)" E2E_K3S_VERSION="$(E2E_K3S_VERSION)" tests/dind.sh "${K3D_IMAGE_TAG}"
+	LOG_LEVEL="$(E2E_LOG_LEVEL)" E2E_INCLUDE="$(E2E_INCLUDE)" E2E_EXCLUDE="$(E2E_EXCLUDE)" E2E_EXTRA="$(E2E_EXTRA)" E2E_RUNNER_START_TIMEOUT=$(E2E_RUNNER_START_TIMEOUT) E2E_HELPER_IMAGE_TAG="$(E2E_HELPER_IMAGE_TAG)" E2E_KEEP="$(E2E_KEEP)" E2E_PARALLEL="$(E2E_PARALLEL)" E2E_DIND_VERSION="$(E2E_DIND_VERSION)" E2E_K3S_VERSION="$(E2E_K3S_VERSION)" E2E_FAIL_FAST="$(E2E_FAIL_FAST)" tests/dind.sh "${K3D_IMAGE_TAG}"
 
 ci-tests: fmt check e2e
 
@@ -220,9 +226,12 @@ endif
 # - gox for cross-compilation (build-cross)
 # - kubectl for E2E-tests (e2e)
 ci-setup:
-	@echo "Installing Go tools..."
+	@echo "### Installing Go tools..."
+	@echo "### -> Installing golangci-lint..."
 	curl -sfL $(PKG_GOLANGCI_LINT_SCRIPT) | sh -s -- -b $(GOENVPATH)/bin v$(PKG_GOLANGCI_LINT_VERSION)
-	$(GO) get $(PKG_GOX)
 
-	@echo "Installing kubectl..."
+	@echo "### -> Installing gox..."
+	./scripts/install-tools.sh gox
+
+	@echo "### Installing kubectl..."
 	./scripts/install-tools.sh kubectl
